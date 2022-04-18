@@ -1,6 +1,7 @@
 ﻿#include "GameScene.h"
 #include "TextureManager.h"
 #include <cassert>
+#include <random>
 
 using namespace DirectX;
 
@@ -14,36 +15,52 @@ void GameScene::Initialize() {
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
 	debugText_ = DebugText::GetInstance();
+	//乱数生成
+	std::random_device seed_gen;
+	//めるせんぬ／ツイスター
+	std::mt19937_64 engine(seed_gen());
+	//乱数範囲(回転角)
+	std::uniform_real_distribution<float> rotDist(0.0f, XM_2PI);
+	//乱数範囲(座標)
+	std::uniform_real_distribution<float> posDist(-10.0f, 10.0f);
 	//テクスチャ読み込み
 	textureHandle_ = TextureManager::Load("hasawei.png");
 	//モデルの生成
 	model_ = Model::Create();
-	//scale
-	woldTF_.scale_ = {5.0f, 5.0f, 5.0f};
-	//回転角
-	woldTF_.rotation_ = {XM_PI/4.0f, XM_PI / 4.0f, 0.0f};
-	//worldtranceration
-	woldTF_.translation_ = {10.0f, 10.0f, 10.0f};
-	//ワールドの初期化
-	woldTF_.Initialize();
+	for (size_t i = 0; i < _countof(woldTF_); i++) {
+
+		// scale
+		woldTF_[i].scale_ = {1.0f, 1.0f, 1.0f};
+		//回転角
+		woldTF_[i].rotation_ = {rotDist(engine),rotDist(engine),rotDist(engine)};
+		// worldtranceration
+		woldTF_[i].translation_ = {posDist(engine), posDist(engine), posDist(engine)};
+		//ワールドの初期化
+		woldTF_[i].Initialize();
+	}
 	//ビューの初期化
 	viewPJ_.Initialize();
-
+	
 
 }
 
 void GameScene::Update() {
 
-	//std::string strDebug = std::string("worldTF_.scale_ =:");
-	debugText_->SetPos(50, 75);
-	debugText_->Printf(
-	  "trace:%f,%f,%f", woldTF_.translation_.x, woldTF_.translation_.y, woldTF_.translation_.z);
-	debugText_->SetPos(50, 90);
-	debugText_->Printf(
-	  "trace:%f,%f,%f", woldTF_.rotation_.x, woldTF_.rotation_.y, woldTF_.rotation_.z);
-	debugText_->SetPos(50, 105);
-	debugText_->Printf("trace:%f,%f,%f", woldTF_.scale_.x, woldTF_.scale_.y, woldTF_.scale_.z);
+	for (size_t i = 0; i < _countof(woldTF_); i++) {
 
+		// std::string strDebug = std::string("worldTF_.scale_ =:");
+		/* debugText_->SetPos(50, 75);
+		debugText_->Printf(
+		  "trace:%f,%f,%f", woldTF_[i].translation_.x, woldTF_[i].translation_.y,
+		  woldTF_[i].translation_.z);
+		debugText_->SetPos(50, 90);
+		debugText_->Printf(
+		  "trace:%f,%f,%f", woldTF_[i].rotation_.x, woldTF_[i].rotation_.y, woldTF_[i].rotation_.z);
+		debugText_->SetPos(50, 105);
+		debugText_->Printf(
+		  "trace:%f,%f,%f", woldTF_[i].scale_.x, woldTF_[i].scale_.y, woldTF_[i].scale_.z);
+		  */
+	}
 }
 
 void GameScene::Draw() {
@@ -74,7 +91,9 @@ void GameScene::Draw() {
 	/// </summary>
 
 	//描画
-	model_->Draw(woldTF_, viewPJ_, textureHandle_);
+	for (size_t i = 0; i < _countof(woldTF_); i++) {
+		model_->Draw(woldTF_[i], viewPJ_, textureHandle_);
+	}
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion
