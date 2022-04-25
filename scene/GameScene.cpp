@@ -32,16 +32,18 @@ void GameScene::Initialize() {
 		// scale
 		woldTF_[i].scale_ = {1.0f, 1.0f, 1.0f};
 		//回転角
-		woldTF_[i].rotation_ = {rotDist(engine),rotDist(engine),rotDist(engine)};
+		woldTF_[i].rotation_ = {rotDist(engine), rotDist(engine), rotDist(engine)};
 		// worldtranceration
 		woldTF_[i].translation_ = {posDist(engine), posDist(engine), posDist(engine)};
 		//ワールドの初期化
 		woldTF_[i].Initialize();
 	}
+
+	viewPJ_.eye = {0, 0, -10};
+	//上方向ベクトルの設定
+	//viewPJ_.up = {cosf(XM_PI / 4.0f), sinf(XM_PI / 4.0f), 0.0f};
 	//ビューの初期化
 	viewPJ_.Initialize();
-	
-
 }
 
 void GameScene::Update() {
@@ -61,6 +63,44 @@ void GameScene::Update() {
 		  "trace:%f,%f,%f", woldTF_[i].scale_.x, woldTF_[i].scale_.y, woldTF_[i].scale_.z);
 		  */
 	}
+	//視点移動ベクトル
+	XMFLOAT3 move = {0, 0, 0};
+	//視点移動速度
+	const float eyesSpeed_ = 0.2f;
+	if (input_->PushKey(DIK_W)) {
+		move = {0, 0, -eyesSpeed_};
+	} else if (input_->PushKey(DIK_S)) {
+		move = {0, 0, eyesSpeed_};
+	}
+	//ベクトルの加算
+	viewPJ_.eye.x += move.x;
+	viewPJ_.eye.y += move.y;
+	viewPJ_.eye.z += move.z;
+	//再計算
+	viewPJ_.UpdateMatrix();
+	//注視点移動
+	if (input_->PushKey(DIK_LEFT)) {
+		move = {-eyesSpeed_, 0, 0};
+	} else if (input_->PushKey(DIK_RIGHT)) {
+		move = {eyesSpeed_, 0, 0};
+	}
+	//ベクトルの加算
+	viewPJ_.target.x += move.x;
+	viewPJ_.target.y += move.y;
+	viewPJ_.target.z += move.z;
+	//上回転処理
+	const float kUpRotSpeed = 0.05f;
+
+	if (input_->PushKey(DIK_SPACE)) 
+	{
+		viewAngle_ += kUpRotSpeed;
+
+		viewAngle_ = fmodf(viewAngle_, XM_2PI);
+	}
+
+	viewPJ_.up = {cosf(viewAngle_), sinf(viewAngle_), 0.0f};
+	//再計算
+	viewPJ_.UpdateMatrix();
 }
 
 void GameScene::Draw() {

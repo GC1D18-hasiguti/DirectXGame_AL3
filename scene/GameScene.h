@@ -59,4 +59,6 @@ class GameScene {
 	WorldTransform woldTF_[100];
 	//ビュープロジェクション
 	ViewProjection viewPJ_;
+	//カメラ上方向の角度
+	float viewAngle_ = 0.0f;
 };
